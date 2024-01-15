@@ -1,0 +1,40 @@
+﻿version: '3.9'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    networks:
+      - postgres-network
+
+  webapi:
+    image: shodmon/to-do
+    build:
+      context: .
+      dockerfile: WebApi/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - todo-images:/app/wwwroot/images
+    networks:
+      - postgres-network
+
+networks:
+  postgres-network:
+    driver: bridge
+
+volumes:
+  postgresql-data:
+  todo-images: 
