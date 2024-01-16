@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <ContainerImageName>shodmon/todo</ContainerImageName>
-    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
-    <ContainerImageTags>2.0.0;latest</ContainerImageTags>
+<!--    <ContainerImageName>shodmon/to-do</ContainerImageName>-->
+<!--    <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>-->
+<!--    <ContainerImageTags>2.0.0;latest</ContainerImageTags>-->
     <UserSecretsId>949af206-c431-4c76-b926-88d0c8ca68c1</UserSecretsId>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>

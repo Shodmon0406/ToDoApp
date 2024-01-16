@@ -7,14 +7,12 @@ using Domain.Response;
 using Infrastructure.Data;
 using Infrastructure.Services.FileServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services.TaskServices;
 
 public class ToDoService(
     DataContext context,
-    IServiceProvider serviceProvider,
     IFileService fileService,
     ILogger<ToDoService> logger) : IToDoService
 {
@@ -22,10 +20,7 @@ public class ToDoService(
     {
         try
         {
-            await using var service = serviceProvider.CreateAsyncScope();
-            var dbContext = service.ServiceProvider.GetRequiredService<DataContext>();
-
-            var toDos = context.Tasks.AsNoTracking().AsQueryable();
+            var toDos = context.Tasks.AsQueryable();
             if (!string.IsNullOrEmpty(filter.ToDoName))
                 toDos = toDos.Where(toDo => toDo.Name.ToLower().Contains(filter.ToDoName.ToLower()));
             var result = await (from toDo in toDos 
@@ -44,6 +39,7 @@ public class ToDoService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the get to do service: {Message}", e.Message);
             return new Response<List<GetToDoDto>>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -62,11 +58,12 @@ public class ToDoService(
                 {
                     Id = x.Id, ImageName = x.Name
                 }).ToList()
-            }).FirstOrDefaultAsync();
+            }).AsNoTracking().FirstOrDefaultAsync();
             return new Response<GetToDoDto>(result);
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the get to do by id service: {Message}", e.Message);
             return new Response<GetToDoDto>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -90,7 +87,7 @@ public class ToDoService(
                 var imageName = await fileService.CreateFile(image);
                 var newImage = new Image()
                 {
-                    Name = imageName.Data ?? "Hello world",
+                    Name = imageName.Data!,
                     ToDoId = mapped.Id
                 };
                 images.Add(newImage);
@@ -121,6 +118,7 @@ public class ToDoService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the update to do service: {Message}", e.Message);
             return new Response<int>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -146,10 +144,11 @@ public class ToDoService(
 
             await context.Images.AddRangeAsync(images);
             await context.SaveChangesAsync();
-            return new Response<string>("Images successfully updated.");
+            return new Response<string>("Images successfully added.");
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the add image service: {Message}", e.Message);
             return new Response<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -159,12 +158,15 @@ public class ToDoService(
         try
         {
             var existToDoImage = await context.Images.Where(x => x.Id == imageId).AsNoTracking().FirstOrDefaultAsync();
-            if (existToDoImage == null) return new Response<string>(HttpStatusCode.NotFound, "ToDo not found!");
+            if (existToDoImage == null) return new Response<string>(HttpStatusCode.NotFound, "Image not found!");
             fileService.DeleteFile(existToDoImage.Name);
+            context.Remove(existToDoImage);
+            await context.SaveChangesAsync();
             return new Response<string>("Image successfully deleted.");
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the delete image service: {Message}", e.Message);
             return new Response<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -173,7 +175,7 @@ public class ToDoService(
     {
         try
         {
-            var result = await context.Tasks.FindAsync(id);
+            var result = await context.Tasks.Where(@do => @do.Id == id).FirstOrDefaultAsync();
             if (result == null!) return new Response<bool>(HttpStatusCode.BadRequest, "ToDo not found!");
             result.IsCompleted = !result.IsCompleted;
             await context.SaveChangesAsync();
@@ -181,6 +183,7 @@ public class ToDoService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the id completed service: {Message}", e.Message);
             return new Response<bool>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -190,6 +193,7 @@ public class ToDoService(
         try
         {
             var task = await context.Tasks.Where(toDo => toDo.Id == id).Select(toDo => new { toDo, toDo.Images })
+                .AsNoTracking()
                 .FirstOrDefaultAsync();
             if (task == null) return new Response<bool>(HttpStatusCode.NotFound, "ToDo not found!");
             context.Tasks.Remove(task.toDo);
@@ -199,6 +203,7 @@ public class ToDoService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the delete to do service: {Message}", e.Message);
             return new Response<bool>(HttpStatusCode.InternalServerError, e.Message);
         }
     }

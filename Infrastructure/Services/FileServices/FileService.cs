@@ -23,7 +23,6 @@ public class FileService(
 
             var fileName = string.Format($"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}");
             var fullPath = Path.Combine(hostEnvironment.WebRootPath, directory, fileName);
-            Console.WriteLine(new string('-', 50));
             await using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
@@ -49,6 +48,7 @@ public class FileService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the update file service: {Message}", e.Message);
             return new Response<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
@@ -63,6 +63,7 @@ public class FileService(
         }
         catch (Exception e)
         {
+            logger.LogError("Error in the delete service: {Message}", e.Message);
             return new Response<string>(HttpStatusCode.InternalServerError, e.Message);
         }
     }
