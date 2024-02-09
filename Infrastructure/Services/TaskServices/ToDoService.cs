@@ -16,7 +16,7 @@ public class ToDoService(
     IFileService fileService,
     ILogger<ToDoService> logger) : IToDoService
 {
-    public async Task<Response<List<GetToDoDto>>> GetTask(ToDoFilter filter)
+    public async Task<Response<List<GetToDoDto>>> GetTask(ToDoFilter filter, CancellationToken token = default)
     {
         try
         {
@@ -34,7 +34,7 @@ public class ToDoService(
                 {
                     Id = image.Id, ImageName = image.Name
                 }).ToList()
-            }).AsNoTracking().ToListAsync();
+            }).AsNoTracking().ToListAsync(token);
             return new Response<List<GetToDoDto>>(result);
         }
         catch (Exception e)
@@ -44,7 +44,7 @@ public class ToDoService(
         }
     }
 
-    public async Task<Response<GetToDoDto>> GetTaskById(int id)
+    public async Task<Response<GetToDoDto>> GetTaskById(int id, CancellationToken token = default)
     {
         try
         {
@@ -58,7 +58,7 @@ public class ToDoService(
                 {
                     Id = x.Id, ImageName = x.Name
                 }).ToList()
-            }).AsNoTracking().FirstOrDefaultAsync();
+            }).AsNoTracking().FirstOrDefaultAsync(token);
             return new Response<GetToDoDto>(result);
         }
         catch (Exception e)

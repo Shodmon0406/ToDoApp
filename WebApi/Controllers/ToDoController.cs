@@ -11,18 +11,18 @@ namespace WebApi.Controllers;
 public class ToDoController(IToDoService service) : BaseController
 {
     [HttpGet("get-to-dos")]
-    public async Task<IActionResult> GetToDos(ToDoFilter filter)
+    public async Task<IActionResult> GetToDos(ToDoFilter filter, CancellationToken token)
     {
-        var result = await service.GetTask(filter);
+        var result = await service.GetTask(filter, token);
         return StatusCode(result.StatusCode, result);
     }
 
     [HttpGet("get-to-do-by-id")]
-    public async Task<IActionResult> GetToDo([Required]int id)
+    public async Task<IActionResult> GetToDo([Required]int id, CancellationToken token)
     {
         if (ModelState.IsValid)
         {
-            var result = await service.GetTaskById(id);
+            var result = await service.GetTaskById(id, token);
             return StatusCode(result.StatusCode, result);
         }
 

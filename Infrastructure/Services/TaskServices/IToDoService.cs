@@ -7,8 +7,8 @@ namespace Infrastructure.Services.TaskServices;
 
 public interface IToDoService
 {
-    Task<Response<List<GetToDoDto>>> GetTask(ToDoFilter filter);
-    Task<Response<GetToDoDto>> GetTaskById(int id);
+    Task<Response<List<GetToDoDto>>> GetTask(ToDoFilter filter, CancellationToken token = default);
+    Task<Response<GetToDoDto>> GetTaskById(int id, CancellationToken token = default);
     Task<Response<int>> AddTask(AddToDoDto toDo);
     Task<Response<int>> UpdateTask(UpdateToDoDto toDo);
     Task<Response<string>> AddImage(AddToDoImageDto toDoImages);
